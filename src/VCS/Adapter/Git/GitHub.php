@@ -136,7 +136,14 @@ class GitHub extends Git
     {
         $url = "/repos/{$owner}/{$repositoryName}";
 
-        $response = $this->call(self::METHOD_GET, $url, ['Authorization' => "Bearer $this->accessToken"]);
+        $headers = [];
+        if (empty($this->accessToken)) {
+            $headers['Authorization'] = "Bearer $this->jwtToken";
+        } else {
+            $headers['Authorization'] = "Bearer $this->accessToken";
+        }
+
+        $response = $this->call(self::METHOD_GET, $url, $headers);
 
         return $response['body'] ?? [];
     }
