@@ -23,11 +23,11 @@ class GitHub extends Git
 
     protected string $endpoint = 'https://api.github.com';
 
-    protected string $accessToken;
+    protected string $accessToken = '';
 
-    protected string $jwtToken;
+    protected string $jwtToken = '';
 
-    protected string $installationId;
+    protected string $installationId = '';
 
     protected Cache $cache;
 
@@ -59,6 +59,13 @@ class GitHub extends Git
     public function initializeVariables(string $installationId, string $privateKey, string $githubAppId): void
     {
         $this->installationId = $installationId;
+
+        if (empty($installationId)) {
+            // Allow PAT-based usage when installation id is unavailable
+            $this->accessToken = $privateKey;
+
+            return;
+        }
 
         $response = $this->cache->load($installationId, 60 * 9); // 10 minutes, but 1 minute earlier to be safe
         if ($response == false) {
@@ -377,6 +384,7 @@ class GitHub extends Git
         /**
          * @var resource $privateKeyObj
          */
+        error_log('privateKey: ' . $privateKey);
         $privateKeyObj = \openssl_pkey_get_private($privateKey);
 
         $appIdentifier = $githubAppId;
@@ -472,7 +480,12 @@ class GitHub extends Git
     {
         $url = "/repos/$owner/$repositoryName/branches?page=$page&per_page=$perPage";
 
-        $response = $this->call(self::METHOD_GET, $url, ['Authorization' => "Bearer $this->accessToken"]);
+        $headers = [];
+        if (!empty($this->accessToken)) {
+            $headers['Authorization'] = "Bearer {$this->accessToken}";
+        }
+
+        $response = $this->call(self::METHOD_GET, $url, $headers);
 
         $names = [];
         foreach ($response['body'] as $subarray) {
