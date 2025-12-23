@@ -484,6 +484,7 @@ class GitHub extends Git
 
         $headers = [];
         if (empty($this->accessToken)) {
+            error_log('jwtToken: ' . $this->jwtToken);
             $headers['Authorization'] = "Bearer $this->jwtToken";
         } else {
             $headers['Authorization'] = "Bearer $this->accessToken";
