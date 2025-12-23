@@ -137,9 +137,7 @@ class GitHub extends Git
         $url = "/repos/{$owner}/{$repositoryName}";
 
         $headers = [];
-        if (empty($this->accessToken)) {
-            $headers['Authorization'] = "Bearer $this->jwtToken";
-        } else {
+        if (!empty($this->accessToken)) {
             $headers['Authorization'] = "Bearer $this->accessToken";
         }
 
@@ -483,10 +481,7 @@ class GitHub extends Git
         $url = "/repos/$owner/$repositoryName/branches?page=$page&per_page=$perPage";
 
         $headers = [];
-        if (empty($this->accessToken)) {
-            error_log('jwtToken: ' . $this->jwtToken);
-            $headers['Authorization'] = "Bearer $this->jwtToken";
-        } else {
+        if (!empty($this->accessToken)) {
             $headers['Authorization'] = "Bearer $this->accessToken";
         }
 
