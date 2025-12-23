@@ -60,13 +60,6 @@ class GitHub extends Git
     {
         $this->installationId = $installationId;
 
-        if (empty($installationId)) {
-            // Allow PAT-based usage when installation id is unavailable
-            $this->accessToken = $this->jwtToken;
-
-            return;
-        }
-
         $response = $this->cache->load($installationId, 60 * 9); // 10 minutes, but 1 minute earlier to be safe
         if ($response == false) {
             $this->generateAccessToken($privateKey, $githubAppId);
@@ -400,11 +393,14 @@ class GitHub extends Git
         $jwt = new JWT($privateKeyObj, 'RS256');
         $token = $jwt->encode($payload);
         $this->jwtToken = $token;
-        $res = $this->call(self::METHOD_POST, '/app/installations/' . $this->installationId . '/access_tokens', ['Authorization' => 'Bearer ' . $token]);
-        if (!isset($res['body']['token'])) {
-            throw new Exception('Failed to retrieve access token from GitHub API.');
+        
+        if(!empty($this->installationId)) {
+            $res = $this->call(self::METHOD_POST, '/app/installations/' . $this->installationId . '/access_tokens', ['Authorization' => 'Bearer ' . $token]);
+            if (!isset($res['body']['token'])) {
+                throw new Exception('Failed to retrieve access token from GitHub API.');
+            }
+            $this->accessToken = $res['body']['token'];
         }
-        $this->accessToken = $res['body']['token'];
     }
 
     /**
@@ -480,8 +476,10 @@ class GitHub extends Git
         $url = "/repos/$owner/$repositoryName/branches?page=$page&per_page=$perPage";
 
         $headers = [];
-        if (!empty($this->accessToken)) {
-            $headers['Authorization'] = "Bearer {$this->accessToken}";
+        if (empty($this->accessToken)) {
+            $headers['Authorization'] = "Bearer $this->jwtToken";
+        } else {
+            $headers['Authorization'] = "Bearer $this->accessToken";
         }
 
         $response = $this->call(self::METHOD_GET, $url, $headers);
