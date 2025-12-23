@@ -280,10 +280,6 @@ abstract class Adapter
     protected function call(string $method, string $path = '', array $headers = [], array $params = [], bool $decode = true)
     {
         $headers = array_merge($this->headers, $headers);
-        $debugHeaders = $headers;
-        if (isset($debugHeaders['Authorization'])) {
-            $debugHeaders['Authorization'] = 'REDACTED';
-        }
         $ch = curl_init($this->endpoint . $path . (($method == self::METHOD_GET && !empty($params)) ? '?' . http_build_query($params) : ''));
 
         if (!$ch) {
@@ -375,9 +371,6 @@ abstract class Adapter
         }
 
         if ((curl_errno($ch)/* || 200 != $responseStatus*/)) {
-            $error = curl_error($ch);
-            $errno = curl_errno($ch);
-            error_log('[Utopia\\VCS] curl_error=' . $error . ' errno=' . $errno . ' status=' . $responseStatus . ' method=' . $method . ' path=' . $path . ' params=' . json_encode($params, JSON_PARTIAL_OUTPUT_ON_ERROR) . ' headers=' . json_encode($debugHeaders, JSON_PARTIAL_OUTPUT_ON_ERROR));
             throw new Exception(curl_error($ch) . ' with status code ' . $responseStatus, $responseStatus);
         }
 

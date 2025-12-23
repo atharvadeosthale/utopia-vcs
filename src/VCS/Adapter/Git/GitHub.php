@@ -62,7 +62,7 @@ class GitHub extends Git
 
         if (empty($installationId)) {
             // Allow PAT-based usage when installation id is unavailable
-            $this->accessToken = $privateKey;
+            $this->accessToken = $this->jwtToken;
 
             return;
         }
