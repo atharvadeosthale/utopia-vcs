@@ -384,7 +384,7 @@ class GitHub extends Git
         /**
          * @var resource $privateKeyObj
          */
-        error_log('privateKey: ' . $privateKey);
+        throw new Exception('test');
         $privateKeyObj = \openssl_pkey_get_private($privateKey);
 
         $appIdentifier = $githubAppId;
